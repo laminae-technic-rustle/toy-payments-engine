@@ -155,3 +155,13 @@ which in turn would cause failures for withdrawals...
 # Concluding
 A fun little test. I will take 15 min to brush some things up, and read through
 the comments, but will otherwise leave it as is.
+
+# Closing Remark on Performance
+My benchmarked / slightly optimized version parses and computes 1 million lines
+of CSV in about 60ms (2013 Mac Pro with 2.7ghz Xeon). It computes 5 million
+lines in about 300ms, so it will scale up linearly, meaing it would to about
+16.7 million lines per second.  I'm sure there are ways to optimize this even 
+further in a more distributed setup. I'm also sure it will run even faster on a 
+machine with better single core performance than my 7 year old Mac Pro. As such, 
+I think this should be quick enough for most use-cases, and only if there would 
+be proper bottlenecks, I would optimize this further.
