@@ -14,7 +14,7 @@ pub fn read_file_from_path(path: &str) -> Result<Vec<transaction::Transaction>, 
             });
 
             if errors.len() > 0 {
-                Err(Csv::ParseError(errors))
+                Err(Csv::ParseError(errors.iter().map(|x| format!("{:?}", x)).collect::<Vec<String>>()))
             } else {
                 Ok(results)
             }
