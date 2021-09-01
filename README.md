@@ -12,3 +12,8 @@ Test:
 ```
 cargo test
 ```
+
+Benchmarks:
+```
+cargo bench
+```
