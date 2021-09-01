@@ -1,5 +1,5 @@
-use std::{ env, process };
 use std::io::{self, Write};
+use std::{env, process};
 
 pub mod account;
 pub mod currency;
@@ -17,20 +17,33 @@ fn main() {
                 let (parsed_transactions, failed_transactions) =
                     ledger::parse_transactions(&transactions);
 
+                /* --------------------- */
+                /* Write correct results */
+                /* --------------------- */
                 let mut writer = csv::Writer::from_writer(vec![]);
                 parsed_transactions.iter().for_each(|x| {
+                    /*
+                     * I'm ignoring the error's here, rely'ing on the soundness of my types,
+                     * ideally, this should be handled correctly.
+                     * */
                     let _ = writer.serialize(x);
                 });
 
-                let data = writer.into_inner().unwrap_or(vec![]);
-                let _ = io::stdout().write_all(&data);
+                /* This is rather unreasonable, should handle errs properly */
+                let std_output = &writer.into_inner().unwrap_or(vec![]);
+                let _ = io::stdout().write_all(std_output);
 
+                /* --------------------- */
+                /* Write errors if any   */
+                /* --------------------- */
                 if failed_transactions.len() > 0 {
-                    eprintln!("Some transactions could not be handled.");
+                    eprintln!("Some transactions could not be handled. See output below:");
                     failed_transactions
                         .iter()
-                        .for_each(|e| eprintln!("{:?}", e));
+                        .for_each(|e| eprintln!("- {:?}", e));
                     process::exit(1)
+                } else {
+                    process::exit(0)
                 }
             }
             Err(errors) => {

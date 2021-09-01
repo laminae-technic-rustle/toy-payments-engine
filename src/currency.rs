@@ -15,10 +15,9 @@ const PRECISION: f64 = 10000.0;
  * 1. No floating point arithmetic - should be faster, but more importantly,
  *    correct, with no rounding errors.
  * 2. I'm making the assumption here that the biggest number for amount is less
- *    than what fits in an i64.
- *    The biggest btc transaction ever, in sats is over a 100 times smaller.
- *    I think we're safe for now. If need be, this can be upped to 128 bits if
- *    need be.
+ *    than what fits in an i64. The biggest btc transaction ever, in sats is 
+ *    over a 100 times smaller.  I think we're safe for now. If need be, this 
+ *    can be upped to 128 bits if need be.
  * */
 
 #[derive(Eq, PartialEq, Debug, Clone, Copy)]
@@ -62,6 +61,10 @@ pub fn safe_subtract_silent(x: Currency, y: Currency) -> Currency {
 /* ------------------------- */
 /* Serializer / Deserializer */
 /* ------------------------- */
+/*
+ * The serializer parses an empty string as 0. While technically incorrect, 
+ * this is the best way to deal with it in the context of this toy
+ * */
 pub fn from_float_string<'de, D>(deserializer: D) -> Result<Currency, D::Error>
 where
     D: Deserializer<'de>,

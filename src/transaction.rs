@@ -16,11 +16,10 @@ pub enum TransactionType {
 }
 
 /*
- * Ideally, these are enums with the struct inside, so
- * dispute, resolve, and chargeback don't have an amount and it's safe at the
- * typelevel. Unfortunately, tagged unions don't deserialize properly when
- * coming in from CSV / writing a custom deserializer for this is a bit
- * overkill for now.
+ * Ideally, these are enums with the struct inside, so dispute, resolve, and 
+ * chargeback don't have an amount and it's safe at the typelevel. 
+ * Unfortunately, tagged unions don't deserialize properly when coming in from 
+ * CSV / writing a custom deserializer for this is a bit overkill for now.
  * */
 #[derive(Debug, Eq, PartialEq, Copy, Clone, Deserialize)]
 pub struct Transaction {

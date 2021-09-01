@@ -9,11 +9,18 @@ pub fn parse_transactions(
     transactions: &Vec<Transaction>,
 ) -> (Vec<Account>, Vec<TransactionError>) {
     /*
-     * By the way this is stated in the brief, it appears only deposits can be
-     * disputed. Disputing a withdrawal, would imply not subtracting the amount
-     * to the client, but adding it. I would probably do this differently.
-     * */
-    let mut deposits: HashMap<u32, Transaction> = HashMap::with_capacity(transactions.len());
+     * We cache:
+     * - deposits, as they're the only transaction that can reasonably be disputed automatically
+     * - disputes: to check that when we're resolving, or doing a chargeback, we're only
+     *     handling things that are actually disputed
+     * - accounts: are created on demand, whenever a deposit occurs.
+     *     NOT for anything else, imho - it doesn't make sense to keep accounts
+     *     lingering around that don't have any funds, and are only trying to
+     *     withdraw / dispute / resolve / chargeback
+     * By design, any dispute refers to a deposit. We could eventually add a
+     * flag as to wether it was disputed or not, which would be more memory efficient.
+     */
+    let mut deposits: HashMap<u32, Transaction> = HashMap::new();
     let mut disputes: HashMap<u32, Transaction> = HashMap::new();
     let mut accounts: HashMap<u16, Account> = HashMap::new();
     let mut transaction_errors: Vec<TransactionError> = vec![];
@@ -42,10 +49,10 @@ pub fn parse_transactions(
             TransactionType::Withdrawal => accounts.get(&transaction.client).map_or(
                 Err(TransactionError::AccountlessAction(*transaction)),
                 |account| {
-                    option::sequence(
+                    option::sequence((
                         safe_subtract_verbose(account.available, transaction.amount),
                         safe_subtract_verbose(account.total, transaction.amount),
-                    )
+                    ))
                     .map_or(
                         Err(TransactionError::UnsettledWithdrawal(
                             *transaction,
@@ -62,10 +69,10 @@ pub fn parse_transactions(
                 },
             ),
             /* Dispute */
-            TransactionType::Dispute => option::sequence(
+            TransactionType::Dispute => option::sequence((
                 accounts.get(&transaction.client),
                 deposits.get(&transaction.tx),
-            )
+            ))
             .map(|(account, past_transaction)| {
                 disputes.insert(past_transaction.tx, *past_transaction);
                 Ok(Account {
@@ -79,10 +86,10 @@ pub fn parse_transactions(
                 UnsettledReason::TransactionOrAccountNotFound,
             ))),
             /* Resolve */
-            TransactionType::Resolve => option::sequence(
+            TransactionType::Resolve => option::sequence((
                 accounts.get(&transaction.client),
-                deposits.get(&transaction.tx),
-            )
+                disputes.get(&transaction.tx),
+            ))
             .map(|(account, past_transaction)| {
                 match safe_subtract_verbose(account.held, past_transaction.amount) {
                     Some(held) => Ok(Account {
@@ -101,15 +108,15 @@ pub fn parse_transactions(
                 UnsettledReason::TransactionOrAccountNotFound,
             ))),
             /* Chargeback */
-            TransactionType::Chargeback => option::sequence(
+            TransactionType::Chargeback => option::sequence((
                 accounts.get(&transaction.client),
                 disputes.get(&transaction.tx),
-            )
+            ))
             .map(|(account, past_transaction)| {
-                match option::sequence(
+                match option::sequence((
                     safe_subtract_verbose(account.held, past_transaction.amount),
                     safe_subtract_verbose(account.total, past_transaction.amount),
-                ) {
+                )) {
                     Some((held, total)) => Ok(Account {
                         held,
                         total,

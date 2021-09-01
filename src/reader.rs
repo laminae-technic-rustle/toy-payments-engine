@@ -1,6 +1,11 @@
 use crate::error::Csv;
 use crate::transaction;
 
+/* 
+ * I chose to disgard the CSV entirely if there are elements unparse-able. 
+ * One might choose to return a tuple and push back the errors in the console,
+ * for further / later manual processing
+ * */
 pub fn read_file_from_path(path: &str) -> Result<Vec<transaction::Transaction>, Csv> {
     csv::Reader::from_path(path)
         .map_err(|e| Csv::FileReadError(format!("Error reading file: {:?}", e)))
