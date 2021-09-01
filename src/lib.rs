@@ -3,13 +3,13 @@ static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
 
 use std::io::{self, Write};
 
-pub mod tests;
 pub mod account;
 pub mod currency;
 pub mod error;
 pub mod ledger;
 pub mod option;
 pub mod reader;
+pub mod tests;
 pub mod transaction;
 
 pub fn bench(filepath: &str) {
@@ -42,12 +42,11 @@ pub fn bench(filepath: &str) {
                 failed_transactions
                     .iter()
                     .for_each(|e| eprintln!("- {:?}", e));
-            }        }
+            }
+        }
         Err(errors) => {
             eprintln!("Failed to parse CSV input");
             eprintln!("{:?}", errors);
         }
     }
 }
-
-
