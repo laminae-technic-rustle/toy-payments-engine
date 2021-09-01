@@ -3,6 +3,7 @@ static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
 
 use std::io::{self, Write};
 
+pub mod tests;
 pub mod account;
 pub mod currency;
 pub mod error;
@@ -48,3 +49,5 @@ pub fn bench(filepath: &str) {
         }
     }
 }
+
+
